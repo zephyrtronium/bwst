@@ -47,10 +47,6 @@ causes the algorithm to treat repeated strings as equal, word boundaries are
 determined according to the difference of the indices, and the lower one is
 reset to the start each time the comparison yields lower earlier.
 
-For my implementation of Lyndon factorization, see lyndon.go:7. Note that it
-does not in all cases produce the true factorization to increase efficiency of
-the BWST; see the comment on line 24 of that file.
-
 Now that I think the Lyndon factorization is satisfactorily explained, the
 BWST itself can be introduced. Recall that the BWST sorts the infinitely
 repeated rotations of all Lyndon words of the input. Let's take a word that
@@ -78,9 +74,8 @@ these words are:
 These rotations are not sorted according to the usual lexicographical order.
 In particular, strings of different lengths are compared as if both are
 repeated infinitely. A shorter length to compare is each word repeated as many
-times as the other has characters. Even shorter is to compare them with
-indices modulus the lengths until either one is determined lesser or both are
-repeated at least once. See function CyclicLess at sort.go:10.
+times as the other has characters. Even shorter is to compute the LCM of the
+lengths of those words and to make up to that many comparisons.
 
 So, if we sort the rotations, we get:
 
@@ -169,8 +164,6 @@ Resources:
  - http://groups.google.com/group/comp.compression/msg/a0236d754e869212 - This
    is an old post, so it misses some connections which now are known, but it
    is the only plain-English description of the BWST and UNBWST I could find.
-   I'm not sure why, but my BWST inverse algorithm is different from and
-   somewhat inferior to the one given here.
  - http://bijective.dogma.net/00yyy.pdf - This paper is a fairly intelligible
    description and implementation of the algorithms, but it contains several
    significant errors. Its examples are more optimized than the ones I gave;
