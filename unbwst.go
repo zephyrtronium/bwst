@@ -6,6 +6,8 @@ import (
 	"sort"     // TODO: don't use sort to unbwst; interfaces are suboptimal
 )
 
+// Compute the inverse of the Burrows-Wheeler-Scott transform. This is done
+// out-of-place.
 func UnBWST(b []byte) []byte {
 	sorted := make([]byte, len(b))
 	copy(sorted, b)
@@ -24,9 +26,9 @@ func UnBWST(b []byte) []byte {
 			}
 		}
 	}
-	// we need to know once again whether each byte is used, so instead of
+	// We need to know once again whether each byte is used, so instead of
 	// resetting the bitset or using more memory, we can just ask whether it's
-	// unused
+	// unused.
 	unused := used
 	words := multibytesorter{}
 	for i := range sorted {
