@@ -51,29 +51,52 @@ func locate(s []byte, words []int) (locs [256][]loc) {
 	return locs
 }
 
-// Compute the Lyndon factorization of s (Duval's algo).
-// Includes both endpoints.
+// Compute the Lyndon factorization of s. Includes both endpoints.
 func factorize(s []byte) (bounds []int) {
-	k, m := 0, 1
-	bounds = []int{0} // should this be [][]byte? []int should be less mem?
-	for m < len(s) {
-		a, b := s[k], s[m]
-		switch {
-		case a < b:
-			k = bounds[len(bounds)-1]
-			m++
-		case a > b:
-			// Any time char a is less than char b where b is past a, they are
-			// in different Lyndon words because rotating a..b right once is
-			// a lesser string.
-			bounds = append(bounds, bounds[len(bounds)-1]+m-k)
-			k, m = m, m+1
-		default:
-			k++
-			m++
+	// Do an initial pass to count the number of words. Hopefully this avoids
+	// enough copying to be faster.
+	ch := make(chan int)
+	go findLyndon(s, ch)
+	n := 1
+	for _ = range ch {
+		n++
+	}
+	ch = make(chan int)
+	go findLyndon(s, ch)
+	bounds = make([]int, 1, n+1)
+	for i := range ch {
+		bounds = append(bounds, i)
+	}
+	return bounds
+}
+
+// Duval's algorithm. This is done concurrently under factorize() to enable
+// word counting without doing extra work.
+func findLyndon(s []byte, ch chan<- int) {
+	// Thanks to Jonathan on golang-nuts for simplifying the inner loop.
+	k := -1
+	for k < len(s) {
+		i, j := k+1, k+2
+		for j < len(s) && s[i] <= s[j] {
+			if s[i] < s[j] {
+				// Whenever a character is less than the first character of
+				// a Lyndon word, it is not in that word.
+				i = k
+			}
+			// When the character at i is equal to the character at the start
+			// of the word, whether it is a part of that word or the start of
+			// the next is determined by the remainder of the string: if the
+			// substring s[k..n] < s[i..n], then s[i] is in the word starting
+			// at k.
+			i++
+			j++
+		}
+		for k < i {
+			ch <- k + j - i + 1
+			k += j - i
 		}
 	}
-	return append(bounds, len(s))
+	close(ch)
 }
 
 // Each instance of a character is considered to be at the beginning of a
