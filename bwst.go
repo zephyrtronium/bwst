@@ -75,12 +75,12 @@ func factorize(s []byte) (bounds []int) {
 func findLyndon(s []byte, ch chan<- int) {
 	// Thanks to Jonathan on golang-nuts for simplifying the inner loop.
 	k := -1
-	for k < len(s) {
+	for k < len(s)-1 {
 		i, j := k+1, k+2
 		for j < len(s) && s[i] <= s[j] {
 			if s[i] < s[j] {
-				// Whenever a character is less than the first character of
-				// a Lyndon word, it is not in that word.
+				// Whenever a character is less than the first character of a
+				// Lyndon word, it is not in that word.
 				i = k
 			}
 			// When the character at i is equal to the character at the start
@@ -92,8 +92,8 @@ func findLyndon(s []byte, ch chan<- int) {
 			j++
 		}
 		for k < i {
-			ch <- k + j - i + 1
 			k += j - i
+			ch <- k + 1
 		}
 	}
 	close(ch)
